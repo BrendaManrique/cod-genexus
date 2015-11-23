@@ -1,0 +1,55 @@
+--========== LISTA ============================================================
+select *  from WFWrkItems where  wftaskcod in (7,11)
+and wfiteminit like '13/12/10'
+ 
+select * from WFWrkItems 
+select * from sng001 where sng001ori=1
+
+--========== AVERIGUAR: Si existe instancia =============================================
+select * from WFWrkItems a 
+inner join sng001 b on a.wfinsprcid= b.sng001inst 
+inner join fsd001 c on b.sng001ndoc=c.pendoc and b.sng001tdoc=c.petdoc and b.sng001pais=c.pepais 
+where --b.sng001inst=22454
+b.sng001ori= 1
+a.wfiteminit like '05/07/12' and b.sng001age=11 order by a.wfiteminit
+
+select * from xwf700 a right outer join sng001 b on a.xwfprcins=b.sng001inst
+where b.sng001ori=1
+select * from xwf700 a right outer join sng001 b on a.xwfprcins=b.sng001inst
+where b.sng001ori=1
+--========== MONTO ============================================================
+select * from sng001 c
+inner join  XWF700 a on c.sng001inst=a.xwfprcins
+inner join X054007 b on b.XlloAomod = a.XWfModulo and 
+b.XlloAosuc = a.XWfSucursal and 
+b.XlloAomda = a.XWfMoneda and 
+ b.XlloAopap = a.XWfPapel and 
+ b.XlloAocta = a.XWfCuenta and 
+b.XlloAooper= a.XWfOperacion   and  
+b.XlloAosbop= a.XWfSubope and 
+b.XlloAotope= a.XWfTipOpe 
+where a.XWFPRCINS=13807 
+
+--========== FRECUENCIA ========================================================
+select * from fpp026 where 
+Pp010Prd = 1 and  Pp017Par = 18 and
+Pp026Mod=29 and Pp026Cod=0
+
+-- Llena pero falta quintumestral
+select * from fpp015 where pp010prd=1 and Pp017Par = 18 and pp015emp=1 
+--=========== MOTIVO Y COMENTARIO =============================================
+select * from WFWrkItems where WFInsPrcId = 22590
+select * from snge01 where snge01inst=22590  --numc = 1
+select * from snge02 where  snge01inst=22590 and SNGE02Corr=1 --corr:1823
+select * from SNGM10 where sngm10corr=1823 --come:Comentario  tipm:1  motc:40
+select * from SNGM02 where SNGM01TipM=1 and SNGM02MotC=40 -- Desc:Error procesamiento
+
+select a.WFInsPrcId,d.sngm10come,e.sngm02desc from WFWrkItems a 
+inner join snge01 b on a.wfinsprcid=b.snge01inst
+inner join snge02 c on a.wfinsprcid=c.snge01inst and b.snge01numc=c.snge02corr
+inner join SNGM10 d on d.sngm10corr=c.sngm10corr
+inner join SNGM02 e on d.sngm01tipm=e.SNGM01TipM and d.sngm02motc=e.SNGM02MotC
+where a.WFInsPrcId = 9241
+--=========== DEBUG ===========================================================
+select * from wfdebug where wfdebmsg like 'BMS%' order by wfdebid DESC
+--delete from wfdebug where wfdebmsg like 'BMS%'; commit;

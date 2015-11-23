@@ -1,0 +1,402 @@
+//Sucursal
+If &Sucurs = 0
+    &Scnom = 'Todas'
+Else
+    Do 'Sucursal'    
+EndIf
+Print Encabezado1
+//CARGO INSTANCIAS EN FECHA INDICADA Y OBTIENE LISTA
+Do 'Inicio'
+//GUARDA ARRAY CON NOMBRES
+Do 'Obtengo Lista'
+//EXTRAE NOMBRES DE ARRAY
+&j = 1
+Do while &j < &i
+    &Ubuser = &VecUser(&j) 
+    Do 'Obtiene Nombre'
+    Print Asistentes
+    &j = &j + 1                                  
+EndDo
+
+
+Print Encabezado2
+//OBTENGO DATOS POR INSTANCIA
+&j = 1
+Do while &j < &ContInst
+    &Sng001Inst = &VectInst(&j) 
+    Do 'TaskCode por  instancia'
+    &j = &j + 1                                  
+EndDo
+Print Firma
+//------------------------------------ SUBRUTINAS ------------------------------------
+
+Sub 'Inicio'
+   //CARGA INSTANCIAS EN APROBACIÓN EN FECHA DADA
+   &Date = &Fecha
+   &ContInst = 1
+   &flag = 'N'
+   For Each // WFWrkItems: WFWrkItems
+   Defined by WFItemInit    
+        //SI PERTENECE A FECHA DADA  
+        If SUBSTR(TtoC(WFItemInit),1,8) = DtoC(&Date)
+            &Sng001Inst = WFInsPrcId    
+            If &flag = 'N' //Almaceno primera instancia
+               &VectInst(&ContInst) = &Sng001Inst
+               &ContInst = &ContInst + 1
+               &flag = 'S'             
+            Else
+               //Busca si la instancia está almacenada
+                &j = 1
+                &Existe = 'N'
+                Do while &j < &ContInst
+                   If &VectInst(&j) = &Sng001Inst
+                        &Existe = 'S'
+                   EndIf
+                   &j = &j + 1                                  
+                 EndDo
+                 //Si no existe la instancia, agrego
+                 If  &Existe = 'N'
+                    &VectInst(&ContInst) = &Sng001Inst 
+                    &ContInst = &ContInst + 1
+                 EndIf
+             EndIf   
+         EndIf //Compara fechas
+   EndFor 
+EndSub  //'Inicio'
+
+Sub 'Existe Instancia'
+    For Each SNG001Inst// SNG001 : Instancias cliente
+    Where SNG001Inst = &Sng001Inst
+    Where SNG001Age  = &Sucurs When &Sucurs <> 0
+    Defined By SNG001Emp
+        &ExisteInstancia = 'S'
+    EndFor 
+EndSub
+
+Sub 'Obtengo Lista'  //---------------------------------------------------------- ASISTENTES
+    //OBTENGO ASISTENTES DE  INSTANCIAS PRESENTADAS          
+    &j = 1
+    &i = 1
+    &flag = 'N' //No hay primer usuario en array
+    Do while &j < &ContInst
+        &Flag7  = 'N'
+        &Flag11 = 'N'
+        
+        For Each // WFWrkItems: WFWrkItems
+        Where WFInsPrcId = &VectInst(&j)
+        Defined by WFItemInit    
+        //SI PERTENECE A FECHA DADA         
+            If SUBSTR(TtoC(WFItemInit),1,8) = DtoC(&Date)
+                &Sng001Inst = WFInsPrcId
+                &WFTaskCod  = WFTaskCod
+                &WfItemUsrCod = WFItemUsrCod
+                &ExisteInstancia = 'N'
+                
+                Do 'Existe Instancia'
+                If &ExisteInstancia = 'S'
+                      If &WFTaskCod = 7 .AND.  &Flag7  = 'N'
+                        Do 'Obtiene Datos Lista'
+                        &Flag7 = 'S'
+                      EndIF
+                      If &WFTaskCod = 11 .AND. &Flag11 = 'N'
+                        Do 'Obtiene Datos Lista'
+                        &Flag11 = 'S'
+                      EndIf
+                EndIf
+            EndIf
+        EndFor
+        &j = &j + 1                                  
+     EndDo
+EndSub
+
+Sub 'Obtiene Datos Lista'
+    For Each  SNG055Emp, SNG057Usr //SNG057 : Usuarios
+    Where SNG055Emp = &Pgcod
+    Where SNG057Usr = &WfItemUsrCod           
+    Defined By SNG057Prc
+       If SNG055Car = 200 .OR. SNG055Car = 201 .OR.  SNG055Car = 202 //Analista-Senior-Administrador
+            &Ubuser = &WfItemUsrCod 
+            //GUARDA ARRAY DE NOMBRES PARA NO REPETIR
+            Do 'Guarda Array Nombres'
+        EndIF
+    EndFor
+EndSub
+
+Sub 'Guarda Array Nombres'  
+    If &flag = 'N' //Almaceno primer nombre
+       &VecUser(&i) =  &Ubuser
+       &i = &i + 1
+       &flag = 'S'             
+    Else
+       //Busca si la instancia está almacenada
+        &k = 1
+        &Existe = 'N'
+        Do while &k < &i
+           If &VecUser(&k) = &Ubuser
+                &Existe = 'S'
+           EndIf
+           &k = &k + 1                                  
+         EndDo
+         //Si no existe la instancia, agrego
+         If  &Existe = 'N'
+            &VecUser(&i) = &Ubuser
+            &i = &i + 1
+         EndIf
+     EndIf   
+EndSub
+
+Sub 'Obtiene Nombre'
+    For Each Ubuser// Fst746: Fst746 - Usuarios
+        Where Ubuser = &Ubuser
+        Defined By Ubnom
+            &Ubnom = Ubnom            
+    EndFor  
+EndSub // 'Obtiene Nombre'
+
+Sub 'TaskCode por  instancia' //--------------------------------------- SOLICITUDES
+    &DebugTxt = 'BMS:-----------------------------------------------------------------------------------------'
+    Do 'Debug'
+    &WFItemInitMayor = ctot('00/00/00')
+    For Each  // WFWrkItems: WFWrkItems
+    Where WFInsPrcId = &Sng001Inst  
+    Defined by WFItemInit 
+         If SUBSTR(TtoC(WFItemInit),1,8) = DtoC(&Date)
+            If WFItemInit > &WFItemInitMayor 
+               &WFItemInitMayor = WFItemInit
+               &WFTaskCod = WFTaskCod 
+               &WFItemStsAct = WFItemStsAct
+               &DebugTxt = 'BMS:Fech'+ttoc(WFItemInit)+'/inst'+str(&Sng001Inst)+'/task:'+str(&WFTaskCod)+'/act:'+str(&WFItemStsAct)
+               Do 'Debug'
+            EndIf    
+         EndIf 
+    EndFor
+    If SUBSTR(TtoC(&WFItemInitMayor),1,8) <> '00/00/00'
+        Do Case
+            Case &WFTaskCod = 55
+               &Decision = 'Aprobado'
+            Case &WFTaskCod = 11 .AND. &WFItemStsAct <> 1 
+               &Decision = 'Rechazado'
+               Do 'Motivo Rechazo'
+            Case &WFTaskCod = 11 .AND. &WFItemStsAct = 1 
+               &Decision = 'Pendiente'
+            Otherwise
+               &Decision = 'Observado'
+        EndCase
+        &DebugTxt = 'BMS:DECISION:'+&Decision
+        Do 'Debug'
+        
+        &ExisteInstancia = 'N'
+        &ExisteClaveOp = 'N'
+        Do 'Datos Instancia'  
+        &DebugTxt = 'BMS:&ExisteInstancia:'+&ExisteInstancia+'/ &ExisteClaveOp:'+&ExisteClaveOp
+        Do 'Debug'
+        If &ExisteInstancia = 'S'  .AND. &ExisteClaveOp = 'S'     
+            &DebugTxt = 'BMS:IMPRIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE'+str(&Sng001Inst)
+            Do 'Debug'
+            Print Solicitudes
+        EndIf
+        Do 'Limpiar'
+    EndIf
+EndSub
+
+Sub 'Datos Instancia'
+    &ExisteInstancia = 'N'
+    For Each SNG001Inst// SNG001 : Instancias cliente
+    Where SNG001Inst = &Sng001Inst
+    Where SNG001Age  = &Sucurs When &Sucurs <> 0
+    Defined By SNG001Emp
+        &ExisteInstancia = 'S'
+        &DebugTxt = 'BMS:-------&ExisteInstancia:'+&ExisteInstancia
+        Do 'Debug'
+        
+        &SNG001cta = SNG001cta
+        &Pendoc  = SNG001NDoc
+        &Pepais  = SNG001Pais
+        &Petdoc  = SNG001Tdoc
+        &SNG001Ori  = SNG001Ori
+         Do 'Datos Persona'
+         Do 'Datos Credito'
+    EndFor    
+EndSub //'Datos Instancia'
+
+Sub 'Datos Persona'
+    For Each Pepais, Petdoc, Pendoc //FSD001: Personas
+    Where Pepais = &Pepais
+    Where Petdoc = &Petdoc
+    Where Pendoc = &Pendoc
+    Defined By Penom
+        &Penom   = Penom
+    EndFor
+EndSub //'Datos Persona'
+
+Sub 'Datos Credito'
+    //------------SOLICITUD DE CRÉDITO
+    &GetMontoNuevo = 'N'
+    &EsFianza = 'N'
+            &DebugTxt = 'BMS:&SNG001Ori'+str(&SNG001Ori)
+            Do 'Debug'
+    If &SNG001Ori=0 .OR. &SNG001Ori=2 .OR. &SNG001Ori=9
+        &GetMontoNuevo = 'N'
+    Else 
+        If &SNG001Ori=1  //Carta Fianza
+            &EsFianza = 'S'
+        Else    //Ampliación, Refinanciación, Reprogramación
+            &GetMontoNuevo = 'S'
+        EndIf
+    EndIf
+    &DebugTxt = 'BMS:&GetMontoNuevo'+&GetMontoNuevo+'/&EsFianza'+&EsFianza
+    Do 'Debug'
+    
+    For Each XWFPRCINS// XWF700
+    Where XWFPRCINS = &Sng001Inst
+    Where XWFCar3   = '1' When &GetMontoNuevo = 'S'
+    Defined By XWFMonto1
+        &ExisteClaveOp = 'S'
+        &DebugTxt = 'BMS:--------&ExisteClaveOp:'+&ExisteClaveOp
+        Do 'Debug'
+        &XWfModulo  = XWfModulo
+        &XWfSucursal= XWfSucursal
+        &XWfMoneda  = XWfMoneda
+        &XWfPapel   = XWfPapel
+        &XWfCuenta  = XWfCuenta       
+        &XWfOperacion= XWfOperacion        
+        &XWfSubope  = XWfSubope
+        &XWfTipOpe  = XWfTipOpe
+    EndFor 
+
+    &DebugTxt = 'BMS:XWfModulo'+str(&XWfModulo)+'/XWfSucursal'+str(&XWfSucursal)+'/&XWfCuenta'+str(&XWfCuenta)
+    Do 'Debug'
+    &DebugTxt = 'BMS:&XWfOperacion'+str(&XWfOperacion)+'/&XWfSubope'+str(&XWfSubope)+'/&XWfTipOpe'+str(&XWfTipOpe)
+    Do 'Debug'
+
+    For Each PgCod// X054007
+    Where PgCod     = &Pgcod
+    Where XlloAomod = &XWfModulo
+    Where XlloAosuc = &XWfSucursal
+    Where XlloAomda = &XWfMoneda
+    Where XlloAopap = &XWfPapel
+    Where XlloAocta = &XWfCuenta
+    Where XlloAooper= &XWfOperacion   
+    Where XlloAosbop= &XWfSubope
+    Where XlloAotope= &XWfTipOpe
+    Defined By XLloAofval
+        &Importe  = XLloAoimp  //----------------Importe 
+    EndFor 
+    &DebugTxt = 'BMS:X054007'+str(&Importe)
+    Do 'Debug'
+
+    If &EsFianza = 'S'
+        For Each  //SNG008: Carta Fianza
+        Where SNG008Inst = &Sng001Inst
+        Defined By SNG008Mnto
+          &Importe = SNG008Mnto  //---------------Importe
+        EndFor
+    EndIf
+    &DebugTxt = 'BMS:SNG008'+str(&Importe)
+    Do 'Debug'
+
+    Do 'Get Frecuencia'
+EndSub
+
+Sub 'Get Frecuencia'
+    //X054023
+    For Each  XllPgcod, XllAomod, XllAosuc, XllAomda, XllAopap, XllAocta, XllAooper, XllAosbop, XllAotop
+    Where XllPgcod  = &Pgcod    
+	Where XllAomod  = &XWfModulo
+	Where XllAosuc  = &XWfSucursal
+	Where XllAomda  = &XWfMoneda
+	Where XllAopap  = &XWfPapel
+	Where XllAocta  = &XWfCuenta
+	Where XllAooper = &XWfOperacion
+	Where XllAosbop = &XWfSubope
+	Where XllAotop  = &XWfTipOpe
+	Defined By XllFValor 
+        &XllCantCuo = XllCantCuo    //-------------Cantidad de cuotas
+        &XllPeriodo = XllPeriodo	// Periodo entre Cuotas
+    EndFor
+    &DebugTxt = 'BMS/FRECU/Mod'+str(&XWfModulo)+'/cta'+str(&XWfCuenta)+'/oper'+str(&XWfOperacion)+'/sub'+str(&XWfSubope)+'/tope'+str(&XWfTipOpe)
+    Do 'Debug'
+        &DebugTxt = 'BMS/CANTCUOTAS:&XllCantCuo'+str(&XllCantCuo)+'BMS/&XllPeriodo'+str(&XllPeriodo)
+    Do 'Debug'
+    
+    For Each //FPP026
+    Where Pp010Prd = 1
+    Where Pp017Par = 18
+    Where Pp026Emp = &Pgcod
+    Where Pp026Mod = &XWfModulo
+    where Pp026Top = &XWfTipOpe
+    Where Pp026Mda = &XWfMoneda
+    Where Pp026Pap = &XWfPapel
+    Where Pp026Cod = &XllPeriodo
+    Defined By Pp026Dsc
+        &Pp026Dsc  = Pp026Dsc  //----------Frecuencia
+    EndFor
+    &DebugTxt = 'BMS/FRECUENCIA:&Pp026Dsc'+&Pp026Dsc
+    Do 'Debug'
+EndSub
+
+Sub 'Motivo Rechazo'
+    For Each // SNGE01: Extension SNG001
+	Where SNGE01Inst = &Sng001Inst
+    Defined by SNGE01NumC
+	    &SNGE02Corr = SNGE01NumC
+    EndFor
+
+    For Each // SNGE02
+	Where SNGE01Inst = &Sng001Inst
+    Where SNGE02Corr =  &SNGE02Corr
+    Defined by SNGE02StrA
+	    &SNGM10Corr = SNGM10Corr
+    EndFor
+
+	For Each // SNGM10: Log de Motivos
+	Where SNGM10Corr = &SNGM10Corr
+		&SNGM10Come = SNGM10Come  //------- Comentario
+        &SNGM01TipM = SNGM01TipM
+        &SNGM02MotC =SNGM02MotC
+	EndFor
+
+    For Each // SNGM02 
+    Where SNGM01TipM = &SNGM01TipM
+    Where SNGM02MotC = &SNGM02MotC
+    Defined by SNGM02Desc
+        &SNGM02Desc = SNGM02Desc  //------- Motivo Rechazo
+    EndFor
+EndSub
+
+Sub 'Limpiar'
+    &Pp026Dsc   =''
+    &XllCantCuo =0
+    &Importe    =0
+    &SNGM02Desc =''
+    &SNGM10Come =''
+    &Decision   =''
+    &Penom      =''
+    &SNGE02Corr =0
+    &SNGM10Corr =0
+    &Sng001Inst =0
+    &SNGM01TipM =0
+    &SNGM02MotC =0
+    &XWfModulo  =0
+    &XWfSucursal=0
+    &XWfMoneda  =0
+    &XWfPapel   =0
+    &XWfCuenta  =0
+    &XWfOperacion = 0 
+    &XWfSubope  =0
+    &XWfTipOpe  =0
+EndSub
+
+Sub 'Sucursal'
+    For Each PgCod, Sucurs //FST001: Sucursales
+    Where PgCod  = &PgCod
+    Where Sucurs = &Sucurs
+    Defined By Scnom
+        &Scnom = Scnom
+    EndFor
+EndSub
+
+Sub 'Debug'
+    &PWFDebug = 'aWFDebug'
+    Call(&PWFDebug, &DebugTxt)
+EndSub // 'Debug'

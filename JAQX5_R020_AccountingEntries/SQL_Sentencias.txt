@@ -1,0 +1,71 @@
+select * from FSH016 where Hcta=8537 and Hsucor=11 and  Hfcon >=  '03/10/12' and Hfcon <= '31/12/12'
+select * from fsh015 where  Hcmod = 120 and Hsucor = 11 and  Htran = 20 and  Hnrel = 13  and  Hfcon ='02/11/12' 
+select * from fsd011 where Scsuc=11 and Sccta=8537 and Scrub  ='2422020101001' and Scmda=101 and Scpap=0 and Scoper=30 and Scsbop =0  and Sctope=1
+--=======================================================================
+select *
+--b.hcta,a.Hcmod, a.hsucor,a.Htran, a.hnrel,b.hmodul,
+--b.Hsucor,b.hrubro,b.hmda,b.hpap ,b.hoper,b.hsubop,b.htoper
+--,,b.hctcbi,b.hmda,b.hcimp1,a.hhora,,a.husing, a.hfcon 
+from FSH015 a 
+inner join fsh016 b on a.Hcmod=b.Hcmod and a.Hsucor=b.Hsucor and a.Htran=b.Htran and a.Hnrel=b.Hnrel and a.Hfcon=b.Hfcon
+--inner join fsd011 c on c.Scsuc=b.Hsucor and c.Scrub=b.hrubro and c.scmda=b.hmda and c.scpap=b.hpap and c.sccta=b.hcta and c.scoper=b.hoper and c.scsbop=b.hsubop and c.sctope=b.htoper
+ where a.hcmod > 500 and a.hcmod=570 and a.hsucor=10 and a.htran=200
+where a.hcmod=50 and a.hsucor=11 and a.htran=505 and a.hnrel=39 and  b.Hcta=8537
+
+where b.Hcta=8537 and b.Hsucor=11 and  b.Hfcon >=  '03/10/12' and b.Hfcon <= '31/12/12' 
+--and  b.hmodul in (120,471) 
+--=======================================================================
+select * from fsh015 where
+--hcmod > 500 and 
+hcmod=70 and hsucor=10 and htran=200 and hnrel =15
+--========================================================================
+--ANULACIÓN
+--========================================================================
+select * from fsx015 where hcmod=535 and hsucor=3 and htran=65 and trim(Txtext) ='69'
+select * from fsh015 where  Hcmod =30 and Hsucor =10 and  Htran =951  and hnrel = 1551 and  Hfcon ='24/06/14' and  Hnrel =9
+--Modulo que se repiten
+--Hacer guia de Procesos
+--Poner subordinal en grilla u hacer matriz para que no se repitan
+--En todo caso probar en modulo 50 y 51, sistema 3 si se repiten
+
+select * from fsd016 
+where modulo in (select modulo from fst111 where dscod =50 or dscod=51 )
+and ctnro=8846  and itsucd=11
+
+select * from fsh016 
+where hmodul in (select modulo from fst111 where dscod =50 or dscod=51 )
+and hcta=8537  and hsucur=11
+
+and itmod = 30 and  ittran =951 and itnrel=545 and itsuc =11  and modulo=21
+
+--La anterior es la prueba para fsd.
+select * from fsd016 where ctnro=8316
+select * from fsh015 
+order by itnrel desc and  itnrel =551 
+select * from fst017
+
+
+--========================================================================
+--DEBUG
+--========================================================================
+select * from wfdebug where wfdebmsg like 'BMS%' order by wfdebid desc
+delete from wfdebug where wfdebmsg like 'BMS%'; commit;
+--========================================================================
+select *
+--b.hcta,a.Hcmod, a.hsucor,a.Htran, a.hnrel,b.hmodul,
+--b.Hsucor,b.hrubro,b.hmda,b.hpap ,b.hoper,b.hsubop,b.htoper
+--,,b.hctcbi,b.hmda,b.hcimp1,a.hhora,,a.husing, a.hfcon 
+from FSH015 a 
+inner join fsh016 b on a.Hcmod=b.Hcmod and a.Hsucor=b.Hsucor and a.Htran=b.Htran and a.Hnrel=b.Hnrel and a.Hfcon=b.Hfcon
+--inner join fsd011 c on c.Scsuc=b.Hsucor and c.Scrub=b.hrubro and c.scmda=b.hmda and c.scpap=b.hpap and c.sccta=b.hcta and c.scoper=b.hoper and c.scsbop=b.hsubop and c.sctope=b.htoper
+
+--where a.hcmod > 500 and a.hcmod=570 and a.hsucor=10 and a.htran=200
+--where a.hcmod=120 and a.hsucor=11 and a.htran=20 and a.hnrel=13 and  b.Hcta=8537
+where b.Hcta=8537  and  b.Hfvco >='29/01/14' and b.Hfvco <='29/01/14' and b.hcmod<500
+select * from fsd011
+select * from fsd450 where cbietxt1
+select * from fst026
+--========================================================================
+--Módulos del sistema
+--========================================================================
+select * from fst111 where dscod =50 or dscod=51 order by modulo
